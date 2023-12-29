@@ -6,6 +6,9 @@ import (
 
 func main() {
 	path := "/path/to/your/directory"
+	tempPath := "path/to/temp"
+	projectPath := "path/to/project"
+	ignorePatterns := "pattern1,pattern2"
 	fileChanged := make(chan string)
 	go watchDirectory(path, fileChanged)
 
@@ -13,8 +16,7 @@ func main() {
 		select {
 		case filePath := <-fileChanged:
 			log.Println("Need to handle file:", filePath)
-			// Here you can call the parser and database update logic
-			// parseFile(filePath)
+			parseFile(filePath, tempPath, projectPath, ignorePatterns)
 			// updateDatabase(parsedData)
 		}
 	}
