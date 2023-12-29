@@ -6,6 +6,7 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
+// TODO: add recursive watcher
 func watchDirectory(path string, fileChanged chan string) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
