@@ -2,6 +2,9 @@ package main
 
 import (
 	"log"
+	"os"
+
+	"github.com/fsnotify/fsnotify/pkg/database/vecmetaq"
 )
 
 func main() {
@@ -18,10 +21,11 @@ func main() {
 	defer pgDB.Close()
 
 	// Initialize VectorDB connection
-	vectorDB, err := vectordb.New(yourVectorDBConfig)
-	if err != nil {
-		log.Fatalf("Failed to connect to VectorDB: %v", err)
-	}
+	vecmetaqBaseURL := os.Getenv("VECMETAQ_BASE_URL")
+	vecmetaqUsername := os.Getenv("VECMETAQ_USERNAME")
+	vecmetaqPassword := os.Getenv("VECMETAQ_PASSWORD")
+
+	vecmetaqClient := vecmetaq.NewClient(vecmetaqBaseURL, vecmetaqUsername, vecmetaqPassword)
 
 	fileChanged := make(chan string)
 	go watchDirectory(path, fileChanged)
