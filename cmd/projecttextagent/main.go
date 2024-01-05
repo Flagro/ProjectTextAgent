@@ -35,7 +35,7 @@ func main() {
 	fileModified := make(chan string)
 	fileCreated := make(chan string)
 	fileDeleted := make(chan string)
-	go watchDirectory(path, fileModified, fileCreated, fileDeleted)
+	go watchDirectory(projectPath, fileModified, fileCreated, fileDeleted)
 
 	for {
 		select {
