@@ -4,7 +4,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/fsnotify/fsnotify/pkg/database/vecmetaq"
+	"github.com/Flagro/ProjectTextAgent/pkg/database/postgres"
+	"github.com/Flagro/ProjectTextAgent/pkg/database/vecmetaq"
 )
 
 func main() {
