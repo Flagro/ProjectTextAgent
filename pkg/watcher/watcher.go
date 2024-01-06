@@ -75,22 +75,17 @@ func (w *Watcher) handleEvent(event fsnotify.Event) {
 	case event.Op&fsnotify.Write == fsnotify.Write:
 		w.FileModified <- event.Name
 	case event.Op&fsnotify.Create == fsnotify.Create:
-		w.handleCreateEvent(event)
+		fi, err := os.Stat(event.Name)
+		if err != nil {
+			log.Println("Error stating file:", err)
+			return
+		}
+		if fi.Mode().IsDir() {
+			w.addDirectory(event.Name)
+		} else {
+			w.FileCreated <- event.Name
+		}
 	case event.Op&fsnotify.Remove == fsnotify.Remove:
 		w.FileDeleted <- event.Name
-	}
-}
-
-// handleCreateEvent processes the create event.
-func (w *Watcher) handleCreateEvent(event fsnotify.Event) {
-	fi, err := os.Stat(event.Name)
-	if err != nil {
-		log.Println("Error stating file:", err)
-		return
-	}
-	if fi.Mode().IsDir() {
-		w.addDirectory(event.Name)
-	} else {
-		w.FileCreated <- event.Name
 	}
 }
