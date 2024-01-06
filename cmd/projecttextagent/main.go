@@ -6,6 +6,7 @@ import (
 
 	"github.com/Flagro/ProjectTextAgent/pkg/database/postgres"
 	"github.com/Flagro/ProjectTextAgent/pkg/database/vecmetaq"
+	"github.com/Flagro/ProjectTextAgent/pkg/watcher"
 )
 
 func main() {
@@ -32,25 +33,29 @@ func main() {
 		parseFile(projectPath, tempPath, projectPath, ignorePatterns)
 	}
 
-	// Watch the project directory for changes and parse the changed file
-	fileModified := make(chan string)
-	fileCreated := make(chan string)
-	fileDeleted := make(chan string)
-	go watchDirectory(path, fileModified, fileCreated, fileDeleted)
+	// Create project directory watcher
+	w, err := watcher.NewWatcher()
+	if err != nil {
+		log.Fatal("Error creating watcher:", err)
+	}
 
+	err = w.WatchDirectory(projectPath)
+	if err != nil {
+		log.Fatal("Error watching directory:", err)
+	}
+
+	// Watch the project directory for changes and parse the changed file
 	for {
 		select {
-		case filePath := <-fileChanged:
-			log.Println("Need to handle file:", filePath)
-			parseFile(filePath, tempPath, projectPath, ignorePatterns)
-			// updateDatabase(parsedData)
-		case filePath := <-fileCreated:
-			log.Println("Need to handle file:", filePath)
-			parseFile(filePath, tempPath, projectPath, ignorePatterns)
-			// updateDatabase(parsedData)
-		case filePath := <-fileDeleted:
-			log.Println("Need to handle file:", filePath)
-			// updateDatabase(parsedData)
+		case filePath := <-w.FileModified:
+			log.Println("Modified file:", filePath)
+			// parseFile(filePath, tempPath, projectPath, ignorePatterns)
+		case filePath := <-w.FileCreated:
+			log.Println("Created file:", filePath)
+			// parseFile(filePath, tempPath, projectPath, ignorePatterns)
+		case filePath := <-w.FileDeleted:
+			log.Println("Deleted file:", filePath)
+			// handle file deletion...
 		}
 	}
 }
