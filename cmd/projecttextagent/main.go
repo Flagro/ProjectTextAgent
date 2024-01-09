@@ -41,8 +41,15 @@ func main() {
 
 	// Initialize the databases connections
 	vecmetaqClient, err := vecmetaq.NewClient(vecmetaqURL, vecmetaqUsername, vecmetaqPassword)
+	if err != nil {
+		log.Fatal("Error creating VecMetaQ client:", err)
+	}
 	defer vecmetaqClient.Close()
-	postgresClient := postgres.NewClient(postgresURL, postgresUser, postgresPassword)
+
+	postgresClient, err := postgres.NewClient(postgresURL, postgresUser, postgresPassword)
+	if err != nil {
+		log.Fatal("Error creating PostgreSQL client:", err)
+	}
 	defer postgresClient.Close()
 
 	// if both dbs are empty, parse the whole project directory
