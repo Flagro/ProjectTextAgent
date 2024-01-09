@@ -29,7 +29,8 @@ func updateDataBases(postgresClient *postgres.Client, vecmetaqClient *vecmetaq.C
 }
 
 func removeFromDatabases(postgresClient *postgres.Client, vecmetaqClient *vecmetaq.Client, filePath string) {
-
+	postgresClient.removeData(filePath)
+	vecmetaqClient.removeData(filePath)
 }
 
 func main() {
