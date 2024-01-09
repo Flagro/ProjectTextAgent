@@ -1,4 +1,4 @@
-package main
+package fileparser
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"os/exec"
 )
 
-func parseFile(filePath, tempPath, projectPath, ignorePatterns string) {
+func ParseFile(filePath, tempPath, projectPath, ignorePatterns string) string {
 	// Construct the command
 	cmd := exec.Command("texttablescoop", filePath, "--temp", tempPath, "--project", projectPath, "--ignore", ignorePatterns)
 
@@ -17,4 +17,5 @@ func parseFile(filePath, tempPath, projectPath, ignorePatterns string) {
 	}
 
 	fmt.Println(string(output))
+	return string(output)
 }
