@@ -1,94 +1,62 @@
 package postgres
 
 import (
-	"encoding/csv"
-	"strings"
+	"database/sql"
+	"fmt"
+	"math/rand"
 
-	"gorm.io/gorm"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-type ParsedData struct {
-	FilePath string      `json:"file_path"`
-	Data     []DataEntry `json:"data"`
+type Client struct {
+	db *sql.DB
 }
 
-type DataEntry struct {
-	DataType string                 `json:"data_type"`
-	CSVText  string                 `json:"csv_text"`
-	Text     string                 `json:"text"`
-	Metadata map[string]interface{} `json:"metadata"`
-}
-
-type TableMetadata struct {
-	gorm.Model
-	FilePath  string
-	TableName string
-}
-
-func processData(data []ParsedData, db *gorm.DB) error {
-	for _, entry := range data {
-		if hasTableData(entry) {
-			err := removeExistingTables(entry.FilePath, db)
-			if err != nil {
-				return err
-			}
-
-			for _, dataEntry := range entry.Data {
-				if dataEntry.DataType == "table" {
-					err := createTableFromCSV(dataEntry.CSVText, entry.FilePath, db)
-					if err != nil {
-						return err
-					}
-				}
-			}
-		}
+func NewClient(url, user, password string) (*Client, error) {
+	connStr := fmt.Sprintf("postgres://%s:%s@%s", user, password, url)
+	db, err := sql.Open("postgres", connStr)
+	if err != nil {
+		return nil, err
 	}
-	return nil
+	return &Client{db: db}, nil
 }
 
-func hasTableData(entry ParsedData) bool {
-	for _, data := range entry.Data {
-		if data.DataType == "table" {
-			return true
-		}
-	}
-	return false
+func (c *Client) Close() {
+	c.db.Close()
 }
 
-func removeExistingTables(filePath string, db *gorm.DB) error {
-	var tables []TableMetadata
-	result := db.Where("file_path = ?", filePath).Find(&tables)
-	if result.Error != nil {
-		return result.Error
+func (c *Client) IsEmpty() (bool, error) {
+	var tableCount int
+	query := "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';"
+	err := c.db.QueryRow(query).Scan(&tableCount)
+	if err != nil {
+		return false, err
 	}
-
-	for _, table := range tables {
-		db.Exec("DROP TABLE IF EXISTS " + table.TableName)
-		db.Delete(&table)
-	}
-	return nil
+	return tableCount == 0, nil
 }
 
-func createTableFromCSV(csvText, filePath string, db *gorm.DB) error {
-	// Parse the CSV data
-	reader := csv.NewReader(strings.NewReader(csvText))
-	_, err := reader.ReadAll()
+func (c *Client) removeData(filePath string) error {
+	query := "DELETE FROM your_table_name WHERE file_path = $1;"
+	_, err := c.db.Exec(query, filePath)
+	return err
+}
+
+func (c *Client) addData(filePath, text, metadata string) error {
+	// Generate a unique table name (this is a very basic example)
+	tableName := fmt.Sprintf("table_%d", rand.Int()) // TODO: fix naming strategy
+
+	// Create table query
+	createTableQuery := fmt.Sprintf("CREATE TABLE %s (...);", tableName) // TODO: come up with schema strategy
+	_, err := c.db.Exec(createTableQuery)
 	if err != nil {
 		return err
 	}
 
-	// Generate a CREATE TABLE statement (this is an example and needs to be adapted)
-	tableName := generateTableName(filePath)
-	createStatement := "CREATE TABLE " + tableName + " (id SERIAL PRIMARY KEY, ...);"
-	db.Exec(createStatement)
+	// TODO: Insert the CSV data into the table. You will need to parse 'text' and construct an appropriate INSERT query.
 
-	// Insert metadata entry
-	db.Create(&TableMetadata{FilePath: filePath, TableName: tableName})
-
-	return nil
-}
-
-func generateTableName(filePath string) string {
-	// Implement a method to generate a unique table name based on the file path
-	return filePath
+	// Associate metadata and filePath with the table
+	// Assuming you have a separate metadata table to associate metadata with your data tables
+	associateQuery := "INSERT INTO metadata_table (table_name, file_path, metadata) VALUES ($1, $2, $3);"
+	_, err = c.db.Exec(associateQuery, tableName, filePath, metadata)
+	return err
 }
