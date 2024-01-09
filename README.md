@@ -17,6 +17,6 @@ Open for collaboration; check the [issues page](https://github.com/Flagro/Projec
 ## 🌟 **Shoutout to the dependencies**
 This project uses:
 - https://github.com/fsnotify/fsnotify for file update events handling
-- https://gorm.io - orm to connect ProjectTextAgent with postgres for for the flat tables manipulations
+- https://github.com/jackc/pgx/ - PostgreSQL driver used with "database/sql"
 - https://github.com/Flagro/VecMetaQ - wrapper over vector database for easy sever-like interface for text embeddings
 - https://github.com/Flagro/TextTableScoop - CLI file-to-text parser
