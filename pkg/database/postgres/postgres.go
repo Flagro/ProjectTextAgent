@@ -35,13 +35,13 @@ func (c *Client) IsEmpty() (bool, error) {
 	return tableCount == 0, nil
 }
 
-func (c *Client) removeData(filePath string) error {
+func (c *Client) RemoveData(filePath string) error {
 	query := "DELETE FROM your_table_name WHERE file_path = $1;"
 	_, err := c.db.Exec(query, filePath)
 	return err
 }
 
-func (c *Client) addData(filePath, text, metadata string) error {
+func (c *Client) AddData(filePath, text, metadata string) error {
 	// Generate a unique table name (this is a very basic example)
 	tableName := fmt.Sprintf("table_%d", rand.Int()) // TODO: fix naming strategy
 
