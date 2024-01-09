@@ -6,8 +6,17 @@ import (
 
 	"github.com/Flagro/ProjectTextAgent/pkg/database/postgres"
 	"github.com/Flagro/ProjectTextAgent/pkg/database/vecmetaq"
+	"github.com/Flagro/ProjectTextAgent/pkg/fileparser"
 	"github.com/Flagro/ProjectTextAgent/pkg/watcher"
 )
+
+func updateDataBases(postgresClient *postgres.Client, vecmetaqClient *vecmetaq.Client, parser_output *fileparser.TextTableScoopOutput) {
+
+}
+
+func removeFromDatabases(postgresClient *postgres.Client, vecmetaqClient *vecmetaq.Client, filePath string) {
+
+}
 
 func main() {
 	// ProjectTextAgent configuration
@@ -31,14 +40,15 @@ func main() {
 	postgresPassword := os.Getenv("POSTGRES_PASSWORD")
 
 	// Initialize the databases connections
-	vecmetaqClient := vecmetaq.NewClient(vecmetaqURL, vecmetaqUsername, vecmetaqPassword)
+	vecmetaqClient, err := vecmetaq.NewClient(vecmetaqURL, vecmetaqUsername, vecmetaqPassword)
 	defer vecmetaqClient.Close()
 	postgresClient := postgres.NewClient(postgresURL, postgresUser, postgresPassword)
 	defer postgresClient.Close()
 
 	// if both dbs are empty, parse the whole project directory
 	if postgresClient.IsEmpty() && vecmetaqClient.IsEmpty() {
-		parseFile(projectPath, tempPath, projectPath, ignorePatterns)
+		wholeProjectOutput := fileparser.ParseFile(projectPath, tempPath, projectPath, ignorePatterns)
+		updateDataBases(postgresClient, vecmetaqClient, wholeProjectOutput)
 	}
 
 	// Create project directory watcher
@@ -57,13 +67,15 @@ func main() {
 		select {
 		case filePath := <-w.FileModified:
 			log.Println("Modified file:", filePath)
-			// parseFile(filePath, tempPath, projectPath, ignorePatterns)
+			fileOutput := fileparser.ParseFile(filePath, tempPath, projectPath, ignorePatterns)
+			updateDataBases(postgresClient, vecmetaqClient, fileOutput)
 		case filePath := <-w.FileCreated:
 			log.Println("Created file:", filePath)
-			// parseFile(filePath, tempPath, projectPath, ignorePatterns)
+			fileOutput := fileparser.ParseFile(filePath, tempPath, projectPath, ignorePatterns)
+			updateDataBases(postgresClient, vecmetaqClient, fileOutput)
 		case filePath := <-w.FileDeleted:
 			log.Println("Deleted file:", filePath)
-			// handle file deletion...
+			removeFromDatabases(postgresClient, vecmetaqClient, filePath)
 		}
 	}
 }
