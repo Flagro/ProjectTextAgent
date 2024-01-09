@@ -11,7 +11,21 @@ import (
 )
 
 func updateDataBases(postgresClient *postgres.Client, vecmetaqClient *vecmetaq.Client, parser_output *fileparser.TextTableScoopOutput) {
-
+	for _, entry := range *parser_output {
+		filePath := entry.FilePath
+		postgresClient.removeData(filePath)
+		vecmetaqClient.removeData(filePath)
+		for _, data := range entry.Data {
+			dataType := data.DataType
+			text := data.Text
+			metadata := data.Metadata
+			if dataType == "table" {
+				postgresClient.addData(filePath, text, metadata)
+			} else if dataType == "text" {
+				vecmetaqClient.addData(filePath, text, metadata)
+			}
+		}
+	}
 }
 
 func removeFromDatabases(postgresClient *postgres.Client, vecmetaqClient *vecmetaq.Client, filePath string) {
