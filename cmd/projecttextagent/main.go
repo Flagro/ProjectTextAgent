@@ -55,7 +55,7 @@ func main() {
 	// if both dbs are empty, parse the whole project directory
 	if postgresClient.IsEmpty() && vecmetaqClient.IsEmpty() {
 		wholeProjectOutput := fileparser.ParseFile(projectPath, tempPath, projectPath, ignorePatterns)
-		updateDataBases(postgresClient, vecmetaqClient, wholeProjectOutput)
+		updateDataBases(postgresClient, vecmetaqClient, &wholeProjectOutput)
 	}
 
 	// Create project directory watcher
@@ -75,11 +75,11 @@ func main() {
 		case filePath := <-w.FileModified:
 			log.Println("Modified file:", filePath)
 			fileOutput := fileparser.ParseFile(filePath, tempPath, projectPath, ignorePatterns)
-			updateDataBases(postgresClient, vecmetaqClient, fileOutput)
+			updateDataBases(postgresClient, vecmetaqClient, &fileOutput)
 		case filePath := <-w.FileCreated:
 			log.Println("Created file:", filePath)
 			fileOutput := fileparser.ParseFile(filePath, tempPath, projectPath, ignorePatterns)
-			updateDataBases(postgresClient, vecmetaqClient, fileOutput)
+			updateDataBases(postgresClient, vecmetaqClient, &fileOutput)
 		case filePath := <-w.FileDeleted:
 			log.Println("Deleted file:", filePath)
 			removeFromDatabases(postgresClient, vecmetaqClient, filePath)
