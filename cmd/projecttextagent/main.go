@@ -10,26 +10,34 @@ import (
 )
 
 func main() {
-	projectPath := "path/to/project"
-	tempPath := "path/to/temp"
-	ignorePatterns := "pattern1,pattern2"
+	// ProjectTextAgent configuration
+	projectPath := os.Getenv("PROJECT_PATH")
+	tempPath := os.Getenv("TEMP_FOLDER_PATH")
+	ignorePatterns := os.Getenv("IGNORE_PATTERS")
 
-	// Initialize PostgreSQL connection
-	pgDB, err := postgres.New("your_postgres_connection_string")
-	if err != nil {
-		log.Fatalf("Failed to connect to PostgreSQL: %v", err)
-	}
-	defer pgDB.Close()
-
-	// Initialize VectorDB connection
-	vecmetaqBaseURL := os.Getenv("VECMETAQ_BASE_URL")
-	vecmetaqUsername := os.Getenv("VECMETAQ_USERNAME")
+	// VecMetaQ configuration
+	vecmetaqBaseURL := os.Getenv("HOST") // TODO: change to VECMETAQ_HOST
+	vecmetaqPort := os.Getenv("PORT")    // TODO: change to VECMETAQ_PORT
+	vecmetaqURL := vecmetaqBaseURL + ":" + vecmetaqPort
+	vecmetaqUsername := os.Getenv("VECMETAQ_USER")
 	vecmetaqPassword := os.Getenv("VECMETAQ_PASSWORD")
 
-	vecmetaqClient := vecmetaq.NewClient(vecmetaqBaseURL, vecmetaqUsername, vecmetaqPassword)
+	// PostgreSQL configuration
+	postgresHost := os.Getenv("POSTGRES_HOST")
+	postgresPort := os.Getenv("POSTGRES_PORT")
+	postgresDB := os.Getenv("POSTGRES_NAME")
+	postgresURL := postgresHost + ":" + postgresPort + "/" + postgresDB
+	postgresUser := os.Getenv("POSTGRES_USER")
+	postgresPassword := os.Getenv("POSTGRES_PASSWORD")
+
+	// Initialize the databases connections
+	vecmetaqClient := vecmetaq.NewClient(vecmetaqURL, vecmetaqUsername, vecmetaqPassword)
+	defer vecmetaqClient.Close()
+	postgresClient := postgres.NewClient(postgresURL, postgresUser, postgresPassword)
+	defer postgresClient.Close()
 
 	// if both dbs are empty, parse the whole project directory
-	if pgDB.IsEmpty() && vecmetaqClient.IsEmpty() {
+	if postgresClient.IsEmpty() && vecmetaqClient.IsEmpty() {
 		parseFile(projectPath, tempPath, projectPath, ignorePatterns)
 	}
 
