@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  agent:
+    build: .
+    volumes:
+      - ${PROJECT_PATH}:${PROJECT_PATH}
+    env_file:
+      - .env
+    depends_on:
+      - postgresdb
+      - vecmetaq
+
+  postgresdb:
+    image: postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_NAME}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  vecmetaq:
+    image: ghcr.io/flagro/vecmetaq:main
+    env_file:
+      - .env
+    volumes:
+      - vecmetaq-data:/var/lib/vecmetaq/data
+
+volumes:
+  postgres-data:
+  vecmetaq-data:
