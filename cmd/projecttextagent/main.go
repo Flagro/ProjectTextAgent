@@ -40,8 +40,8 @@ func main() {
 	ignorePatterns := os.Getenv("IGNORE_PATTERS")
 
 	// VecMetaQ configuration
-	vecmetaqBaseURL := os.Getenv("HOST") // TODO: change to VECMETAQ_HOST
-	vecmetaqPort := os.Getenv("PORT")    // TODO: change to VECMETAQ_PORT
+	vecmetaqBaseURL := os.Getenv("VECMETAQ_HOST")
+	vecmetaqPort := os.Getenv("VECMETAQ_PORT")
 	vecmetaqURL := vecmetaqBaseURL + ":" + vecmetaqPort
 	vecmetaqUsername := os.Getenv("VECMETAQ_USER")
 	vecmetaqPassword := os.Getenv("VECMETAQ_PASSWORD")
