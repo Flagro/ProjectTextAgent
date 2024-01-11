@@ -7,26 +7,28 @@ import (
 )
 
 // VecMetaQClient holds the configuration for the VecMetaQ database API.
-type VecMetaQClient struct {
-	BaseURL    string
+type Client struct {
+	Host       string
+	Port       string
 	Username   string
 	Password   string
 	HTTPClient *http.Client
 }
 
 // NewClient creates a new VecMetaQClient with the necessary configuration.
-func NewClient(baseURL, username, password string) *VecMetaQClient {
-	return &VecMetaQClient{
-		BaseURL:    baseURL,
+func NewClient(host, port, username, password string) (*Client, error) {
+	return &Client{
+		Host:       host,
+		Port:       port,
 		Username:   username,
 		Password:   password,
 		HTTPClient: &http.Client{},
-	}
+	}, nil
 }
 
 // PostText posts text, tag, and metadata to the VecMetaQ database.
-func (client *VecMetaQClient) PostText(text, tag string, metadata map[string]interface{}) error {
-	endpoint := client.BaseURL + "/path/to/post/endpoint"
+func (c *Client) PostText(text, tag string, metadata map[string]interface{}) error {
+	endpoint := c.BaseURL + "/path/to/post/endpoint"
 	requestBody, err := json.Marshal(map[string]interface{}{
 		"text":     text,
 		"tag":      tag,
@@ -40,10 +42,10 @@ func (client *VecMetaQClient) PostText(text, tag string, metadata map[string]int
 	if err != nil {
 		return err
 	}
-	req.SetBasicAuth(client.Username, client.Password)
+	req.SetBasicAuth(c.Username, c.Password)
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := client.HTTPClient.Do(req)
+	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -58,16 +60,16 @@ func (client *VecMetaQClient) PostText(text, tag string, metadata map[string]int
 }
 
 // DeleteTag deletes a tag from the VecMetaQ database.
-func (client *VecMetaQClient) DeleteTag(tag string) error {
-	endpoint := client.BaseURL + "/path/to/delete/endpoint"
+func (c *Client) DeleteTag(tag string) error {
+	endpoint := c.BaseURL + "/path/to/delete/endpoint"
 	req, err := http.NewRequest("DELETE", endpoint, nil)
 	if err != nil {
 		return err
 	}
 	req.URL.Query().Add("tag", tag)
-	req.SetBasicAuth(client.Username, client.Password)
+	req.SetBasicAuth(c.Username, c.Password)
 
-	resp, err := client.HTTPClient.Do(req)
+	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return err
 	}

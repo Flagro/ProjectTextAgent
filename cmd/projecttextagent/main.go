@@ -52,9 +52,8 @@ func main() {
 	ignorePatterns := os.Getenv("IGNORE_PATTERS")
 
 	// VecMetaQ configuration
-	vecmetaqBaseURL := os.Getenv("VECMETAQ_HOST")
+	vecmetaqHost := os.Getenv("VECMETAQ_HOST")
 	vecmetaqPort := os.Getenv("VECMETAQ_PORT")
-	vecmetaqURL := vecmetaqBaseURL + ":" + vecmetaqPort
 	vecmetaqUsername := os.Getenv("VECMETAQ_USER")
 	vecmetaqPassword := os.Getenv("VECMETAQ_PASSWORD")
 
@@ -66,7 +65,7 @@ func main() {
 	postgresPassword := os.Getenv("POSTGRES_PASSWORD")
 
 	// Initialize the databases connections
-	vecmetaqClient, err := vecmetaq.NewClient(vecmetaqURL, vecmetaqUsername, vecmetaqPassword)
+	vecmetaqClient, err := vecmetaq.NewClient(vecmetaqHost, vecmetaqPort, vecmetaqUsername, vecmetaqPassword)
 	if err != nil {
 		log.Fatal("Error creating VecMetaQ client:", err)
 	}
