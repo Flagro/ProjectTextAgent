@@ -38,12 +38,12 @@ func (c *Client) IsEmpty() (bool, error) {
 	return true, nil
 }
 
-// PostText posts text, tag, and metadata to the VecMetaQ database.
-func (c *Client) PostText(text, tag string, metadata map[string]interface{}) error {
+// AddData posts text, filePath, and metadata to the VecMetaQ database.
+func (c *Client) AddData(filePath, text, metadata string) error {
 	endpoint := fmt.Sprintf("%s:%s/add_data/", c.Host, c.Port)
 	requestBody, err := json.Marshal(map[string]interface{}{
 		"text":     text,
-		"tag":      tag,
+		"tag":      filePath,
 		"metadata": metadata,
 	})
 	if err != nil {
@@ -71,15 +71,15 @@ func (c *Client) PostText(text, tag string, metadata map[string]interface{}) err
 	return nil
 }
 
-// DeleteTag deletes a tag from the VecMetaQ database.
-func (c *Client) DeleteTag(tag string) error {
+// RemoveData deletes a tag from the VecMetaQ database.
+func (c *Client) RemoveData(filePath string) error {
 	endpoint := fmt.Sprintf("%s:%s/delete_data/", c.Host, c.Port)
 	req, err := http.NewRequest("DELETE", endpoint, nil)
 	if err != nil {
 		return err
 	}
 	query := req.URL.Query()
-	query.Add("tag", tag)
+	query.Add("tag", filePath)
 	req.URL.RawQuery = query.Encode()
 	req.SetBasicAuth(c.Username, c.Password)
 
