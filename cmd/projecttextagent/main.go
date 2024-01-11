@@ -20,17 +20,29 @@ func updateDataBases(postgresClient *postgres.Client, vecmetaqClient *vecmetaq.C
 			text := data.Text
 			metadata := data.Metadata
 			if dataType == "table" {
-				postgresClient.AddData(filePath, text, metadata)
+				err := postgresClient.AddData(filePath, text, metadata)
+				if err != nil {
+					log.Fatal("Error adding data to PostgreSQL:", err)
+				}
 			} else if dataType == "text" {
-				vecmetaqClient.AddData(filePath, text, metadata)
+				err := vecmetaqClient.AddData(filePath, text, metadata)
+				if err != nil {
+					log.Fatal("Error adding data to VecMetaQ:", err)
+				}
 			}
 		}
 	}
 }
 
 func removeFromDatabases(postgresClient *postgres.Client, vecmetaqClient *vecmetaq.Client, filePath string) {
-	postgresClient.RemoveData(filePath)
-	vecmetaqClient.RemoveData(filePath)
+	err := postgresClient.RemoveData(filePath)
+	if err != nil {
+		log.Fatal("Error removing data from PostgreSQL:", err)
+	}
+	err = vecmetaqClient.RemoveData(filePath)
+	if err != nil {
+		log.Fatal("Error removing data from VecMetaQ:", err)
+	}
 }
 
 func main() {
