@@ -67,7 +67,17 @@ func main() {
 	defer postgresClient.Close()
 
 	// if both dbs are empty, parse the whole project directory
-	if postgresClient.IsEmpty() && vecmetaqClient.IsEmpty() {
+	postgresIsEmpty, err := postgresClient.IsEmpty()
+	if err != nil {
+		log.Fatalf("Error checking if PostgreSQL database is empty: %v", err)
+	}
+
+	vecmetaqIsEmpty, err := vecmetaqClient.IsEmpty()
+	if err != nil {
+		log.Fatalf("Error checking if VecMetaQ database is empty: %v", err)
+	}
+
+	if postgresIsEmpty && vecmetaqIsEmpty {
 		wholeProjectOutput := fileparser.ParseFile(projectPath, tempPath, projectPath, ignorePatterns)
 		updateDataBases(postgresClient, vecmetaqClient, &wholeProjectOutput)
 	}
