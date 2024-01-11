@@ -42,18 +42,27 @@ func (c *Client) Close() error {
 }
 
 // IsEmpty checks if the database is empty
-func (c *Client) IsEmpty() bool {
+func (c *Client) IsEmpty() (bool, error) {
 	var count int64
-	c.db.Model(&TableData{}).Count(&count)
-	return count == 0
+	if err := c.db.Model(&TableData{}).Count(&count).Error; err != nil {
+		return false, err
+	}
+	return count == 0, nil
 }
 
 // RemoveData removes the data from the database
-func (c *Client) RemoveData(filePath string) {
-	c.db.Delete(&TableData{}, "file_path = ?", filePath)
+func (c *Client) RemoveData(filePath string) error {
+	if err := c.db.Where("file_path = ?", filePath).Delete(&TableData{}).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 // AddData adds the data to the database
-func (c *Client) AddData(filePath, text, metadata string) {
-	c.db.Create(&TableData{FilePath: filePath, CSVContent: text, Metadata: metadata})
+func (c *Client) AddData(filePath, text, metadata string) error {
+	entry := TableData{FilePath: filePath, CSVContent: text, Metadata: metadata}
+	if err := c.db.Create(&entry).Error; err != nil {
+		return err
+	}
+	return nil
 }
