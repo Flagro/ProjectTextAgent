@@ -67,7 +67,9 @@ func (c *Client) DeleteTag(tag string) error {
 	if err != nil {
 		return err
 	}
-	req.URL.Query().Add("tag", tag)
+	query := req.URL.Query()
+	query.Add("tag", tag)
+	req.URL.RawQuery = query.Encode()
 	req.SetBasicAuth(c.Username, c.Password)
 
 	resp, err := c.HTTPClient.Do(req)
