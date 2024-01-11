@@ -1,9 +1,8 @@
 version: '3.8'
 
 services:
-  projecttextagent:
+  agent:
     build: .
-    container_name: projecttextagent_app
     volumes:
       - .:/app
       - ${PROJECT_PATH}:${PROJECT_PATH}
@@ -15,7 +14,6 @@ services:
 
   postgresdb:
     image: postgres
-    container_name: projecttextagent_postgres
     environment:
       POSTGRES_DB: ${POSTGRES_NAME}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -25,7 +23,6 @@ services:
 
   vecmetaq:
     image: ghcr.io/flagro/vecmetaq:main
-    container_name: projecttextagent_vecmetaq
     env_file:
       - .env
 
