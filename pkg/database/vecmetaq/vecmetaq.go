@@ -31,6 +31,13 @@ func (c *Client) Close() error {
 	return nil
 }
 
+// IsEmpty checks if the database is empty
+// TODO:
+// currently there are no interfaces to check if this is false, so we will have to return true
+func (c *Client) IsEmpty() (bool, error) {
+	return true, nil
+}
+
 // PostText posts text, tag, and metadata to the VecMetaQ database.
 func (c *Client) PostText(text, tag string, metadata map[string]interface{}) error {
 	endpoint := fmt.Sprintf("%s:%s/add_data/", c.Host, c.Port)
