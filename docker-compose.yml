@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  projecttextagent:
+    build: .
+    container_name: projecttextagent_app
+    volumes:
+      - .:/app
+      - ${PROJECT_PATH}:${PROJECT_PATH}
+    env_file:
+      - .env
+    depends_on:
+      - postgresdb
+      - vecmetaq
+
+  postgresdb:
+    image: postgres
+    container_name: projecttextagent_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_NAME}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  vecmetaq:
+    image: ghcr.io/flagro/vecmetaq:main
+    container_name: projecttextagent_vecmetaq
+    env_file:
+      - .env
+
+volumes:
+  postgres-data:
