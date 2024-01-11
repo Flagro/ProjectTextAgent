@@ -1,6 +1,8 @@
 package postgres
 
 import (
+	"fmt"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -17,13 +19,15 @@ type Data struct {
 	Metadata string
 }
 
-// NewClient creates a new client connected to the PostgreSQL database
 func NewClient(host, port, dbName, user, password string) (*Client, error) {
-	dsn := "host=" + host + " user=" + user + " password=" + password + " dbname=" + dbName + " port=" + port
+	dsn := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s", host, port, user, dbName, password)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
+
+	db.AutoMigrate(&FileEntry{})
+
 	return &Client{db: db}, nil
 }
 
@@ -39,21 +43,16 @@ func (c *Client) Close() error {
 // IsEmpty checks if the database is empty
 func (c *Client) IsEmpty() bool {
 	var count int64
-	c.db.Model(&Data{}).Count(&count)
+	c.db.Model(&FileEntry{}).Count(&count)
 	return count == 0
 }
 
-// RemoveData removes data from the database based on the file path
-func (c *Client) RemoveData(filePath string) error {
-	return c.db.Where("file_path = ?", filePath).Delete(&Data{}).Error
+// RemoveData removes the data from the database
+func (c *Client) RemoveData(filePath string) {
+	c.db.Delete(&FileEntry{}, "file_path = ?", filePath)
 }
 
-// AddData adds data to the database
-func (c *Client) AddData(filePath, text, metadata string) error {
-	data := Data{
-		FilePath: filePath,
-		Text:     text,
-		Metadata: metadata,
-	}
-	return c.db.Create(&data).Error
+// AddData adds the data to the database
+func (c *Client) AddData(filePath, text, metadata string) {
+	c.db.Create(&FileEntry{FilePath: filePath, TextContent: text, Metadata: metadata})
 }
