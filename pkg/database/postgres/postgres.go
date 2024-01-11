@@ -1,62 +1,59 @@
 package postgres
 
 import (
-	"database/sql"
-	"fmt"
-	"math/rand"
-
-	_ "github.com/jackc/pgx/v5/stdlib"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 type Client struct {
-	db *sql.DB
+	db *gorm.DB
 }
 
-func NewClient(host, port, name, user, password string) (*Client, error) {
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", user, password, host, port, name)
-	db, err := sql.Open("postgres", connStr)
+// Table data structure
+type Data struct {
+	gorm.Model
+	FilePath string
+	Text     string
+	Metadata string
+}
+
+// NewClient creates a new client connected to the PostgreSQL database
+func NewClient(host, port, dbName, user, password string) (*Client, error) {
+	dsn := "host=" + host + " user=" + user + " password=" + password + " dbname=" + dbName + " port=" + port
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
 	return &Client{db: db}, nil
 }
 
-func (c *Client) Close() {
-	c.db.Close()
-}
-
-func (c *Client) IsEmpty() (bool, error) {
-	var tableCount int
-	query := "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';"
-	err := c.db.QueryRow(query).Scan(&tableCount)
-	if err != nil {
-		return false, err
-	}
-	return tableCount == 0, nil
-}
-
-func (c *Client) RemoveData(filePath string) error {
-	query := "DELETE FROM your_table_name WHERE file_path = $1;"
-	_, err := c.db.Exec(query, filePath)
-	return err
-}
-
-func (c *Client) AddData(filePath, text, metadata string) error {
-	// Generate a unique table name (this is a very basic example)
-	tableName := fmt.Sprintf("table_%d", rand.Int()) // TODO: fix naming strategy
-
-	// Create table query
-	createTableQuery := fmt.Sprintf("CREATE TABLE %s (...);", tableName) // TODO: come up with schema strategy
-	_, err := c.db.Exec(createTableQuery)
+// Close closes the database connection
+func (c *Client) Close() error {
+	db, err := c.db.DB()
 	if err != nil {
 		return err
 	}
+	return db.Close()
+}
 
-	// TODO: Insert the CSV data into the table. You will need to parse 'text' and construct an appropriate INSERT query.
+// IsEmpty checks if the database is empty
+func (c *Client) IsEmpty() bool {
+	var count int64
+	c.db.Model(&Data{}).Count(&count)
+	return count == 0
+}
 
-	// Associate metadata and filePath with the table
-	// Assuming you have a separate metadata table to associate metadata with your data tables
-	associateQuery := "INSERT INTO metadata_table (table_name, file_path, metadata) VALUES ($1, $2, $3);"
-	_, err = c.db.Exec(associateQuery, tableName, filePath, metadata)
-	return err
+// RemoveData removes data from the database based on the file path
+func (c *Client) RemoveData(filePath string) error {
+	return c.db.Where("file_path = ?", filePath).Delete(&Data{}).Error
+}
+
+// AddData adds data to the database
+func (c *Client) AddData(filePath, text, metadata string) error {
+	data := Data{
+		FilePath: filePath,
+		Text:     text,
+		Metadata: metadata,
+	}
+	return c.db.Create(&data).Error
 }
