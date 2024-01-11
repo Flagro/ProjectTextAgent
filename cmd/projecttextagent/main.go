@@ -13,24 +13,36 @@ import (
 func updateDataBases(postgresClient *postgres.Client, vecmetaqClient *vecmetaq.Client, parser_output *fileparser.TextTableScoopOutput) {
 	for _, entry := range *parser_output {
 		filePath := entry.FilePath
-		postgresClient.removeData(filePath)
-		vecmetaqClient.removeData(filePath)
+		postgresClient.RemoveData(filePath)
+		vecmetaqClient.RemoveData(filePath)
 		for _, data := range entry.Data {
 			dataType := data.DataType
 			text := data.Text
 			metadata := data.Metadata
 			if dataType == "table" {
-				postgresClient.addData(filePath, text, metadata)
+				err := postgresClient.AddData(filePath, text, metadata)
+				if err != nil {
+					log.Fatal("Error adding data to PostgreSQL:", err)
+				}
 			} else if dataType == "text" {
-				vecmetaqClient.addData(filePath, text, metadata)
+				err := vecmetaqClient.AddData(filePath, text, metadata)
+				if err != nil {
+					log.Fatal("Error adding data to VecMetaQ:", err)
+				}
 			}
 		}
 	}
 }
 
 func removeFromDatabases(postgresClient *postgres.Client, vecmetaqClient *vecmetaq.Client, filePath string) {
-	postgresClient.removeData(filePath)
-	vecmetaqClient.removeData(filePath)
+	err := postgresClient.RemoveData(filePath)
+	if err != nil {
+		log.Fatal("Error removing data from PostgreSQL:", err)
+	}
+	err = vecmetaqClient.RemoveData(filePath)
+	if err != nil {
+		log.Fatal("Error removing data from VecMetaQ:", err)
+	}
 }
 
 func main() {
@@ -50,7 +62,6 @@ func main() {
 	postgresHost := os.Getenv("POSTGRES_HOST")
 	postgresPort := os.Getenv("POSTGRES_PORT")
 	postgresDB := os.Getenv("POSTGRES_NAME")
-	postgresURL := postgresHost + ":" + postgresPort + "/" + postgresDB
 	postgresUser := os.Getenv("POSTGRES_USER")
 	postgresPassword := os.Getenv("POSTGRES_PASSWORD")
 
@@ -61,14 +72,24 @@ func main() {
 	}
 	defer vecmetaqClient.Close()
 
-	postgresClient, err := postgres.NewClient(postgresURL, postgresUser, postgresPassword)
+	postgresClient, err := postgres.NewClient(postgresHost, postgresPort, postgresDB, postgresUser, postgresPassword)
 	if err != nil {
 		log.Fatal("Error creating PostgreSQL client:", err)
 	}
 	defer postgresClient.Close()
 
 	// if both dbs are empty, parse the whole project directory
-	if postgresClient.IsEmpty() && vecmetaqClient.IsEmpty() {
+	postgresIsEmpty, err := postgresClient.IsEmpty()
+	if err != nil {
+		log.Fatal("Error checking if PostgreSQL database is empty:", err)
+	}
+
+	vecmetaqIsEmpty, err := vecmetaqClient.IsEmpty()
+	if err != nil {
+		log.Fatal("Error checking if VecMetaQ database is empty:", err)
+	}
+
+	if postgresIsEmpty && vecmetaqIsEmpty {
 		wholeProjectOutput := fileparser.ParseFile(projectPath, tempPath, projectPath, ignorePatterns)
 		updateDataBases(postgresClient, vecmetaqClient, &wholeProjectOutput)
 	}
