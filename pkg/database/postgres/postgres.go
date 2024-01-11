@@ -12,11 +12,11 @@ type Client struct {
 }
 
 // Table data structure
-type Data struct {
+type TableData struct {
 	gorm.Model
-	FilePath string
-	Text     string
-	Metadata string
+	FilePath   string `gorm:"primary_key"`
+	Metadata   string `gorm:"primary_key"`
+	CSVContent string
 }
 
 func NewClient(host, port, dbName, user, password string) (*Client, error) {
@@ -26,7 +26,7 @@ func NewClient(host, port, dbName, user, password string) (*Client, error) {
 		return nil, err
 	}
 
-	db.AutoMigrate(&FileEntry{})
+	db.AutoMigrate(&TableData{})
 
 	return &Client{db: db}, nil
 }
@@ -43,16 +43,16 @@ func (c *Client) Close() error {
 // IsEmpty checks if the database is empty
 func (c *Client) IsEmpty() bool {
 	var count int64
-	c.db.Model(&FileEntry{}).Count(&count)
+	c.db.Model(&TableData{}).Count(&count)
 	return count == 0
 }
 
 // RemoveData removes the data from the database
 func (c *Client) RemoveData(filePath string) {
-	c.db.Delete(&FileEntry{}, "file_path = ?", filePath)
+	c.db.Delete(&TableData{}, "file_path = ?", filePath)
 }
 
 // AddData adds the data to the database
 func (c *Client) AddData(filePath, text, metadata string) {
-	c.db.Create(&FileEntry{FilePath: filePath, TextContent: text, Metadata: metadata})
+	c.db.Create(&TableData{FilePath: filePath, CSVContent: text, Metadata: metadata})
 }
