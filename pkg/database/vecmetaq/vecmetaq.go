@@ -3,6 +3,7 @@ package vecmetaq
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -28,7 +29,7 @@ func NewClient(host, port, username, password string) (*Client, error) {
 
 // PostText posts text, tag, and metadata to the VecMetaQ database.
 func (c *Client) PostText(text, tag string, metadata map[string]interface{}) error {
-	endpoint := c.BaseURL + "/path/to/post/endpoint"
+	endpoint := fmt.Sprintf("%s:%s/add_data/", c.Host, c.Port)
 	requestBody, err := json.Marshal(map[string]interface{}{
 		"text":     text,
 		"tag":      tag,
@@ -61,7 +62,7 @@ func (c *Client) PostText(text, tag string, metadata map[string]interface{}) err
 
 // DeleteTag deletes a tag from the VecMetaQ database.
 func (c *Client) DeleteTag(tag string) error {
-	endpoint := c.BaseURL + "/path/to/delete/endpoint"
+	endpoint := fmt.Sprintf("%s:%s/delete_data/", c.Host, c.Port)
 	req, err := http.NewRequest("DELETE", endpoint, nil)
 	if err != nil {
 		return err
