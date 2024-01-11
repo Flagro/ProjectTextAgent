@@ -19,6 +19,7 @@ type TableData struct {
 	CSVContent string
 }
 
+// NewClient creates a new PostgreSQL client
 func NewClient(host, port, dbName, user, password string) (*Client, error) {
 	dsn := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s", host, port, user, dbName, password)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
