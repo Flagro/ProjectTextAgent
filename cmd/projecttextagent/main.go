@@ -69,12 +69,12 @@ func main() {
 	// if both dbs are empty, parse the whole project directory
 	postgresIsEmpty, err := postgresClient.IsEmpty()
 	if err != nil {
-		log.Fatalf("Error checking if PostgreSQL database is empty: %v", err)
+		log.Fatal("Error checking if PostgreSQL database is empty:", err)
 	}
 
 	vecmetaqIsEmpty, err := vecmetaqClient.IsEmpty()
 	if err != nil {
-		log.Fatalf("Error checking if VecMetaQ database is empty: %v", err)
+		log.Fatal("Error checking if VecMetaQ database is empty:", err)
 	}
 
 	if postgresIsEmpty && vecmetaqIsEmpty {
