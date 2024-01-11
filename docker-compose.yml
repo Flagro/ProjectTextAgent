@@ -24,6 +24,9 @@ services:
     image: ghcr.io/flagro/vecmetaq:main
     env_file:
       - .env
+    volumes:
+      - vecmetaq-data:/var/lib/vecmetaq/data
 
 volumes:
   postgres-data:
+  vecmetaq-data:
