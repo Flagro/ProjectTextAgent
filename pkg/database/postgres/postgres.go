@@ -13,7 +13,6 @@ type Client struct {
 
 // Table data structure
 type TableData struct {
-	gorm.Model
 	FilePath   string `gorm:"primary_key"`
 	Metadata   string `gorm:"primary_key"`
 	CSVContent string
