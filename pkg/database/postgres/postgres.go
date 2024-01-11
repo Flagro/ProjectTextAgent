@@ -12,8 +12,8 @@ type Client struct {
 	db *sql.DB
 }
 
-func NewClient(url, user, password string) (*Client, error) {
-	connStr := fmt.Sprintf("postgres://%s:%s@%s", user, password, url)
+func NewClient(host, port, name, user, password string) (*Client, error) {
+	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", user, password, host, port, name)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return nil, err

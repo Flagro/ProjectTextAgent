@@ -50,7 +50,6 @@ func main() {
 	postgresHost := os.Getenv("POSTGRES_HOST")
 	postgresPort := os.Getenv("POSTGRES_PORT")
 	postgresDB := os.Getenv("POSTGRES_NAME")
-	postgresURL := postgresHost + ":" + postgresPort + "/" + postgresDB
 	postgresUser := os.Getenv("POSTGRES_USER")
 	postgresPassword := os.Getenv("POSTGRES_PASSWORD")
 
@@ -61,7 +60,7 @@ func main() {
 	}
 	defer vecmetaqClient.Close()
 
-	postgresClient, err := postgres.NewClient(postgresURL, postgresUser, postgresPassword)
+	postgresClient, err := postgres.NewClient(postgresHost, postgresPort, postgresDB, postgresUser, postgresPassword)
 	if err != nil {
 		log.Fatal("Error creating PostgreSQL client:", err)
 	}
