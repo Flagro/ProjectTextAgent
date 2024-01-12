@@ -45,7 +45,7 @@ func (c *Client) IsEmpty() (bool, error) {
 
 // AddData posts text, filePath, and metadata to the VecMetaQ database.
 func (c *Client) AddData(filePath, text, metadata string) error {
-	endpoint := fmt.Sprintf("%s:%s/add_data/", c.Host, c.Port)
+	endpoint := fmt.Sprintf("http://%s:%s/add_data/", c.Host, c.Port)
 	requestBody, err := json.Marshal(map[string]interface{}{
 		"text":     text,
 		"tag":      filePath,
@@ -77,7 +77,7 @@ func (c *Client) AddData(filePath, text, metadata string) error {
 
 // RemoveData deletes a tag from the VecMetaQ database.
 func (c *Client) RemoveData(filePath string) error {
-	endpoint := fmt.Sprintf("%s:%s/delete_data/", c.Host, c.Port)
+	endpoint := fmt.Sprintf("http://%s:%s/delete_data/", c.Host, c.Port)
 	req, err := http.NewRequest("DELETE", endpoint, nil)
 	if err != nil {
 		return err
