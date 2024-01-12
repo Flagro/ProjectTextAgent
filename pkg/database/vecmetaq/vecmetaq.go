@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 )
@@ -70,6 +71,7 @@ func (c *Client) AddData(filePath, text, metadata string) error {
 		if i == c.Retries-1 {
 			return connection_err
 		}
+		log.Print("Error establishin connection with VecMetaQ, retrying:", connection_err)
 		time.Sleep(c.RetryInterval)
 	}
 	return nil
