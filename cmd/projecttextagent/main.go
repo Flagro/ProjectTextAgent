@@ -18,7 +18,7 @@ func updateDataBases(postgresClient *postgres.Client, vecmetaqClient *vecmetaq.C
 		for _, data := range entry.Data {
 			dataType := data.DataType
 			text := data.Text
-			metadata := data.Metadata
+			metadata := string(data.Metadata)
 			if dataType == "table" {
 				err := postgresClient.AddData(filePath, text, metadata)
 				if err != nil {

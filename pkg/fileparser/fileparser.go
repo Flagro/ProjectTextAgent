@@ -9,9 +9,9 @@ import (
 type TextTableScoopOutput []struct {
 	FilePath string `json:"file_path"`
 	Data     []struct {
-		DataType string `json:"data_type"`
-		Text     string `json:"text"`
-		Metadata string `json:"metadata"`
+		DataType string          `json:"data_type"`
+		Text     string          `json:"text"`
+		Metadata json.RawMessage `json:"metadata"`
 	} `json:"data"`
 }
 
