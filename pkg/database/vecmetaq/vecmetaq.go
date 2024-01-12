@@ -5,25 +5,30 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 // VecMetaQClient holds the configuration for the VecMetaQ database API.
 type Client struct {
-	Host       string
-	Port       string
-	Username   string
-	Password   string
-	HTTPClient *http.Client
+	Host          string
+	Port          string
+	Username      string
+	Password      string
+	HTTPClient    *http.Client
+	Retries       int
+	RetryInterval time.Duration
 }
 
 // NewClient creates a new VecMetaQClient with the necessary configuration.
 func NewClient(host, port, username, password string) (*Client, error) {
 	return &Client{
-		Host:       host,
-		Port:       port,
-		Username:   username,
-		Password:   password,
-		HTTPClient: &http.Client{},
+		Host:          host,
+		Port:          port,
+		Username:      username,
+		Password:      password,
+		HTTPClient:    &http.Client{},
+		Retries:       3,
+		RetryInterval: time.Second * 5,
 	}, nil
 }
 
@@ -57,17 +62,16 @@ func (c *Client) AddData(filePath, text, metadata string) error {
 	req.SetBasicAuth(c.Username, c.Password)
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := c.HTTPClient.Do(req)
-	if err != nil {
-		return err
+	for i := 0; i < c.Retries; i++ {
+		connection_err, status_err := c.Do(req)
+		if connection_err == nil {
+			return status_err
+		}
+		if i == c.Retries-1 {
+			return connection_err
+		}
+		time.Sleep(c.RetryInterval)
 	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		// Handle non-OK response
-		return err
-	}
-
 	return nil
 }
 
@@ -83,16 +87,30 @@ func (c *Client) RemoveData(filePath string) error {
 	req.URL.RawQuery = query.Encode()
 	req.SetBasicAuth(c.Username, c.Password)
 
+	for i := 0; i < c.Retries; i++ {
+		connection_err, status_err := c.Do(req)
+		if connection_err == nil {
+			return status_err
+		}
+		if i == c.Retries-1 {
+			return connection_err
+		}
+		time.Sleep(c.RetryInterval)
+	}
+	return nil
+}
+
+// Do request with retries wrapper
+func (c *Client) Do(req *http.Request) (error, error) {
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
-		return err
+		return err, nil
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		// Handle non-OK response
-		return err
+		return nil, err
 	}
-
-	return nil
+	return nil, nil
 }
