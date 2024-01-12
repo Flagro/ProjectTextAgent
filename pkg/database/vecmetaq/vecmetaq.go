@@ -62,19 +62,7 @@ func (c *Client) AddData(filePath, text, metadata string) error {
 	}
 	req.SetBasicAuth(c.Username, c.Password)
 	req.Header.Set("Content-Type", "application/json")
-
-	for i := 0; i < c.Retries; i++ {
-		connection_err, status_err := c.Do(req)
-		if connection_err == nil {
-			return status_err
-		}
-		if i == c.Retries-1 {
-			return connection_err
-		}
-		log.Print("Error establishin connection with VecMetaQ, retrying:", connection_err)
-		time.Sleep(c.RetryInterval)
-	}
-	return nil
+	return c.retriesDo(req)
 }
 
 // RemoveData deletes a tag from the VecMetaQ database.
@@ -88,22 +76,26 @@ func (c *Client) RemoveData(filePath string) error {
 	query.Add("tag", filePath)
 	req.URL.RawQuery = query.Encode()
 	req.SetBasicAuth(c.Username, c.Password)
+	return c.retriesDo(req)
+}
 
+func (c *Client) retriesDo(req *http.Request) error {
 	for i := 0; i < c.Retries; i++ {
-		connection_err, status_err := c.Do(req)
+		connection_err, status_err := c.do(req)
 		if connection_err == nil {
 			return status_err
 		}
 		if i == c.Retries-1 {
 			return connection_err
 		}
+		log.Print("Error establishin connection with VecMetaQ, retrying:", connection_err)
 		time.Sleep(c.RetryInterval)
 	}
 	return nil
 }
 
 // Do request with retries wrapper
-func (c *Client) Do(req *http.Request) (error, error) {
+func (c *Client) do(req *http.Request) (error, error) {
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return err, nil
