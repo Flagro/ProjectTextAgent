@@ -11,8 +11,7 @@ import (
 
 // VecMetaQClient holds the configuration for the VecMetaQ database API.
 type Client struct {
-	Host          string
-	Port          string
+	Endpoint      string
 	Username      string
 	Password      string
 	HTTPClient    *http.Client
@@ -23,8 +22,7 @@ type Client struct {
 // NewClient creates a new VecMetaQClient with the necessary configuration.
 func NewClient(host, port, username, password string) (*Client, error) {
 	return &Client{
-		Host:          host,
-		Port:          port,
+		Endpoint:      fmt.Sprintf("http://%s:%s", host, port),
 		Username:      username,
 		Password:      password,
 		HTTPClient:    &http.Client{},
@@ -46,7 +44,7 @@ func (c *Client) IsEmpty() (bool, error) {
 
 // AddData posts text, filePath, and metadata to the VecMetaQ database.
 func (c *Client) AddData(filePath, text, metadata string) error {
-	endpoint := fmt.Sprintf("http://%s:%s/add_data/", c.Host, c.Port)
+	endpoint := fmt.Sprintf("%s/add_data/", c.Endpoint)
 	requestBody, err := json.Marshal(map[string]interface{}{
 		"text":     text,
 		"tag":      filePath,
@@ -67,7 +65,7 @@ func (c *Client) AddData(filePath, text, metadata string) error {
 
 // RemoveData deletes a tag from the VecMetaQ database.
 func (c *Client) RemoveData(filePath string) error {
-	endpoint := fmt.Sprintf("http://%s:%s/delete_data/", c.Host, c.Port)
+	endpoint := fmt.Sprintf("%s/delete_data/", c.Endpoint)
 	req, err := http.NewRequest("DELETE", endpoint, nil)
 	if err != nil {
 		return err
