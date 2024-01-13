@@ -89,8 +89,12 @@ func main() {
 	}
 
 	if postgresIsEmpty && vecmetaqIsEmpty {
-		wholeProjectOutput := fileparser.ParseFile(projectPath, tempPath, projectPath, ignorePatterns)
-		updateDataBases(postgresClient, vecmetaqClient, &wholeProjectOutput)
+		wholeProjectOutput, err := fileparser.ParseFile(projectPath, tempPath, projectPath, ignorePatterns)
+		if err != nil {
+			log.Println("Error parsing project directory:", err)
+		} else {
+			updateDataBases(postgresClient, vecmetaqClient, &wholeProjectOutput)
+		}
 	}
 
 	// Create project directory watcher
@@ -109,11 +113,19 @@ func main() {
 		select {
 		case filePath := <-w.FileModified:
 			log.Println("Modified file:", filePath)
-			fileOutput := fileparser.ParseFile(filePath, tempPath, projectPath, ignorePatterns)
+			fileOutput, err := fileparser.ParseFile(filePath, tempPath, projectPath, ignorePatterns)
+			if err != nil {
+				log.Println("Error parsing file:", err)
+				continue
+			}
 			updateDataBases(postgresClient, vecmetaqClient, &fileOutput)
 		case filePath := <-w.FileCreated:
 			log.Println("Created file:", filePath)
-			fileOutput := fileparser.ParseFile(filePath, tempPath, projectPath, ignorePatterns)
+			fileOutput, err := fileparser.ParseFile(filePath, tempPath, projectPath, ignorePatterns)
+			if err != nil {
+				log.Println("Error parsing file:", err)
+				continue
+			}
 			updateDataBases(postgresClient, vecmetaqClient, &fileOutput)
 		case filePath := <-w.FileDeleted:
 			log.Println("Deleted file:", filePath)
