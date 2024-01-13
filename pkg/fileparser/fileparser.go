@@ -2,7 +2,7 @@ package fileparser
 
 import (
 	"encoding/json"
-	"log"
+	"fmt"
 	"os/exec"
 )
 
@@ -15,22 +15,22 @@ type TextTableScoopOutput []struct {
 	} `json:"data"`
 }
 
-func ParseFile(filePath, tempPath, projectPath, ignorePatterns string) TextTableScoopOutput {
+func ParseFile(filePath, tempPath, projectPath, ignorePatterns string) (TextTableScoopOutput, error) {
 	// Construct the command
 	cmd := exec.Command("texttablescoop", filePath, "--temp", tempPath, "--project", projectPath, "--ignore", ignorePatterns)
 
 	// Run the command
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Fatalf("texttablescoop finished with error: %v", err)
+		return TextTableScoopOutput{}, fmt.Errorf("texttablescoop finished with error: %v", err)
 	}
 
 	// Unmarshal the output into a TextTableScoopOutput
 	var result TextTableScoopOutput
 	err = json.Unmarshal(output, &result)
 	if err != nil {
-		log.Fatalf("Failed to unmarshal output: %v", err)
+		return TextTableScoopOutput{}, fmt.Errorf("failed to unmarshal output: %v", err)
 	}
 
-	return result
+	return result, nil
 }

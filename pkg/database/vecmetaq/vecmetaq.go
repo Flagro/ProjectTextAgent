@@ -91,7 +91,7 @@ func (c *Client) retriesDo(req *http.Request) error {
 		if i == c.Retries-1 {
 			return connection_err
 		}
-		log.Print("Error establishin connection with VecMetaQ, retrying:", connection_err)
+		log.Println("Error establishin connection with VecMetaQ, retrying:", connection_err)
 		time.Sleep(c.RetryInterval)
 	}
 	return nil
