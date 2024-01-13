@@ -66,14 +66,19 @@ func (c *Client) AddData(filePath, text, metadata string) error {
 // RemoveData deletes a tag from the VecMetaQ database.
 func (c *Client) RemoveData(filePath string) error {
 	endpoint := fmt.Sprintf("%s/delete_data/", c.Endpoint)
-	req, err := http.NewRequest("DELETE", endpoint, nil)
+	requestBody, err := json.Marshal(map[string]interface{}{
+		"tag": filePath,
+	})
 	if err != nil {
 		return err
 	}
-	query := req.URL.Query()
-	query.Add("tag", filePath)
-	req.URL.RawQuery = query.Encode()
+
+	req, err := http.NewRequest("DELETE", endpoint, bytes.NewBuffer(requestBody))
+	if err != nil {
+		return err
+	}
 	req.SetBasicAuth(c.Username, c.Password)
+	req.Header.Set("Content-Type", "application/json")
 	return c.retriesDo(req)
 }
 
